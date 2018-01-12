@@ -2,15 +2,15 @@ version: '3'
 
 services:
   postfix:
-    image: alterrebe/postfix-relay
+    image: zentekmx/postfix-relay
     container_name: postfix
     ports:
     - "25:25"
     environment:
     - RELAY_HOST_NAME=acme.com
-    - EXT_RELAY_HOST=smtp.ipage.com
-    - EXT_RELAY_PORT=587
-    - SMTP_LOGIN=user@acme.com
+    - EXT_RELAY_HOST=smtp.mailtrap.io
+    - EXT_RELAY_PORT=2525
+    - SMTP_LOGIN=ce962545c464e5
     - SMTP_PASSWORD=secret
  
   ldap:
