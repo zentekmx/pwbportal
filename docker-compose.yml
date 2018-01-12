@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  postfix:
+    image: alterrebe/postfix-relay
+    container_name: postfix
+    ports:
+    - "25:25"
+    environment:
+    - RELAY_HOST_NAME=acme.com
+    - EXT_RELAY_HOST=smtp.ipage.com
+    - EXT_RELAY_PORT=587
+    - SMTP_LOGIN=user@acme.com
+    - SMTP_PASSWORD=secret
+ 
+  ldap:
+    image: zentekmx/openldap:2.4
+    container_name: openldap
+    ports:
+    - "389:389"
+    volumes:
+    - ldap-volume:/var/lib/ldap:Z
+    environment:
+    - LDAP_ORGANIZATION=Acme Inc
+    - LDAP_DOMAIN=acme.com
+    - LDAP_SECRET=secret
+
+  dbpwbportal:
+    image: postgres:10.1
+    container_name: postgres.site
+    ports:
+    - 5432:5432
+    volumes:
+    - dbpwbportal-volume:/var/lib/postgresql/data:Z
+    environment:
+    - POSTGRES_DB=pwbdb
+    - POSTGRES_USER=admin
+    - POSTGRES_PASSWORD=secret
+  pwbportal:
+    image: zentekmx/pwbportal:1.3.1
+    container_name: pwbportal.site
+    command: bash -c "/sbin/wait-for-it dbpwbportal:5432 -t 60 -- echo 'Database is up' && rails pwb:install:migrations && rails db:create && rails db:migrate && rails pwb:db:seed && rails pwb:db:seed_pages && rails server"
+    ports:
+      - 80:3000
+    environment:
+    - DATABASE_HOST=dbpwbportal
+    - DB_ADMIN_PASSWORD=secret
+    - DB_ADMIN_USERNAME=admin
+    - DATABASE_NAME=pwbdb
+    depends_on:
+    - dbpwbportal
+
+volumes:
+    ldap-volume:
+    dbcrm-volume:
+    dbpwbportal-volume:
+
